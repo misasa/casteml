@@ -90,8 +90,8 @@ EOS
 	<<-EOS
     casteml download
     casteml join
-    http://dream.misasa.okayama-u.ac.jp
-    http://dream.misasa.okayama-u.ac.jp/documentation/CastemlPlot/report.pdf
+    https://dream.misasa.okayama-u.ac.jp
+    https://dream.misasa.okayama-u.ac.jp/documentation/CastemlPlot/report.pdf
     https://github.com/misasa/casteml/blob/master/lib/casteml/commands/plot_command.rb
 EOS
 	end

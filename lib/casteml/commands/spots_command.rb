@@ -25,18 +25,18 @@ EOS
 
 	    @params = {
 	    	:image_width => 0.49,
-	    	:scale_ab_rel_to_image_width => [10e-6,10],
+	    	:scale_ab_rel_to_image_width => [2e-6,10],
 	    	:scale_iso_range_min_max => [-20,20],
       		:template_file => File.join(Casteml::TEMPLATE_DIR, 'spots.tex.erb')
       	}
-        add_option("-o", "--output path", "Output filename (default: inputfile-isocirc.tex)") do |v|
+        add_option("-o", "--output path", "Output texfile (default: INPUTFILE-isocirc.tex)") do |v|
           options[:output_file] = v
         end
 
-        add_option("-p", "--picture path", "Picture file (default: inputfile)") do |v|
+        add_option("-p", "--picture path", "Input imagefile (default: INPUTFILE)") do |v|
           options[:picture_file] = v
         end
-        add_option("-w", "--image-width NUM", "Image width (default: #{@params[:image_width]})") do |v|
+        add_option("-w", "--image-width NUM", "Image width in percent relative to an image (default: #{@params[:image_width]})") do |v|
           options[:image_width] = v
         end
         add_option("-t", "--template-file path", "Template file path (default: #{@params[:template_file]})") do |v|
@@ -50,7 +50,7 @@ EOS
           options[:scale_ab_rel_to_image_width] = v
         end
 
-        add_option("-i", "--scale-iso-range-min-max NUM,NUM", Array, "Scale isotope range (default: #{params[:scale_iso_range_min_max].join(',')})") do |v|
+        add_option("-i", "--scale-iso-range-min-max NUM1,NUM2", Array, "Scale isotope range from NUM1 to NUM2 (default: #{params[:scale_iso_range_min_max].join(',')})") do |v|
           if v.length != 2
             raise OptionParser::InvalidArgument.new("incorrect number of arguments for scale-iso-range-min-max")
           end
@@ -65,7 +65,7 @@ EOS
     texfile with spots and isocircles.
 
     Arguments ABUNDANCE and ISOTOPE correspond to name of columns for
-    element abundance and isotope abundance to draw a isocircle.
+    element abundance and isotope abundance to draw isocircles.
 
     The isocircle (formerly known as isoclock) consists of two threads
     that are arrow and tick.  Angle of arrow corresponds to isotope
@@ -82,32 +82,27 @@ EOS
 	<<-EOS
     ### demonstration for spot ###
     $ ls
-    tt_bcg12@4032.jpg
-    matlab>> spots   % => input spots on an imagefile
+    ref_ol_sc@32.jpg
+    matlab>> spots    % => input spots on an imagefile
+    ...
     $ ls
-    tt_bcg12@4032.jpg  tt_bcg12@4032.tex  tt_bcg12@4032.pml~
-    $ rm tt_bcg12@4032.tex; mv tt_bcg12@4032.pml~ tt_bcg12@4032.pml
+    ref_ol_sc@32.jpg  ref_ol_sc@32.pml  ref_ol_sc@32.tex
+    $ casteml spots ref_ol_sc@32.pml
+    ./ref_ol_sc@32-isocirc.tex writing...
     $ ls
-    tt_bcg12@4032.jpg  tt_bcg12@4032.pml
-    $ casteml spots tt_bcg12@4032.pml
-    ./tt_bcg12@4032.tex writing...
-    $ ls
-    tt_bcg12@4032.jpg  tt_bcg12@4032.pml  tt_bcg12@4032.tex
+    ref_ol_sc@32.jpg  ref_ol_sc@32.pml  ref_ol_sc@32.tex  ref_ol_sc@32-isocirc.tex
 
     ### demonstration for isocircle ###
     $ ls
-    tt_bcg12@4032.jpg
-    matlab>> spots   % => input spots on an imagefile
+    ref_ol_sc@32.jpg  ref_ol_sc@32.pml  ref_ol_sc@32.tex
+    $ casteml convert -f isorg ref_ol_sc@32.pml > ref_ol_sc@32.isorg
     $ ls
-    tt_bcg12@4032.jpg  tt_bcg12@4032.tex  tt_bcg12@4032.pml~
-    $ rm tt_bcg12@4032.tex tt_bcg12@4032.pml~
-    $ vi tt_bcg12@4032.isorg # => add columns with label `Li' and `d7Li'
+    ref_ol_sc@32.jpg  ref_ol_sc@32.tex  ref_ol_sc@32.pml  ref_ol_sc@32.isorg
+    $ vi ref_ol_sc@32.isorg    # => add columns with label `Li (ppm)' and `d7Li'
     ...
+    $ casteml spots ref_ol_sc@32.isorg Li d7Li -a 2e-6,10 -i -30,+30    # => 2 pps with 10% width circle
     $ ls
-    tt_bcg12@4032.jpg  tt_bcg12@4032.isorg
-    $ casteml spots tt_bcg12@4032.isorg Li d7Li -a 2.1e-6,10 -i -30,+30
-    $ ls
-    tt_bcg12@4032.jpg  tt_bcg12@4032.isorg  tt_bcg12@4032.tex
+    ref_ol_sc@32.jpg  ref_ol_sc@32.pml  ref_ol_sc@32.tex  ref_ol_sc@32.isorg  ref_ol_sc@32-isocirc.tex
 EOS
 	end
 
@@ -115,7 +110,7 @@ EOS
 	<<-EOS
     spots.m
     casteml convert
-    http://dream.misasa.okayama-u.ac.jp
+    https://dream.misasa.okayama-u.ac.jp
     https://github.com/misasa/casteml/blob/master/lib/casteml/commands/spots_command.rb
 EOS
 	end
