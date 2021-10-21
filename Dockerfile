@@ -9,7 +9,7 @@ RUN bash -l -c 'bundle install'
 COPY . /app/casteml/
 RUN rm -r /app/casteml/pkg | bundle exec rake build casteml.gemspec
 RUN gem install pkg/casteml-*.gem
-ENTRYPOINT ["casteml"]
+#ENTRYPOINT ["casteml"]
 
 
 
