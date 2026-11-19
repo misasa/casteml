@@ -87,7 +87,7 @@ module Casteml::Commands
 				it "generate plotfile" do
 					expect(cmd).to receive(:read_template).and_return(template)
 					expect(erb).to receive(:result).and_return(output)
-					expect(ERB).to receive(:new).with(template, nil, "-", "@output").and_return(erb)
+					expect(ERB).to receive(:new).with(template, trim_mode: "-", eoutvar: "@output").and_return(erb)
 					expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + ".R"), output)
 #					expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + "_trace.R"), Regexp.new("input = \\\"#{File.basename(path, '.*') + '_trace.dataframe'}\\\"\noutput = \\\"#{File.basename(path, '.*') + '_trace.pdf'}\\\"\n"))
 					subject
@@ -140,7 +140,7 @@ module Casteml::Commands
 					it "generate plotfile" do
 						expect(cmd).to receive(:read_template).and_return(template)
 						expect(erb).to receive(:result).and_return(output)
-						expect(ERB).to receive(:new).with(template, nil, "-", "@output").and_return(erb)
+						expect(ERB).to receive(:new).with(template, trim_mode: "-", eoutvar: "@output").and_return(erb)
 #						expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + "_#{category}.R"), Regexp.new("input = \\\"#{File.basename(path, '.*') + "_#{category}.dataframe"}\\\"\r\noutput = \\\"#{File.basename(path, '.*') + "_#{category}.pdf"}\\\"\r\n"))
 						expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + "_#{category}.R"), output)
 						subject

@@ -11,11 +11,6 @@ datasets locally, and transfer analyses to and from Medusa.
 - [medusa_rest_client](https://github.com/misasa/medusa_rest_client) 1.5.4 or later in the 1.x series.
 - For plotting, R on your PATH. For PDF tables, `pdflatex` and the `pmlatex` LaTeX package.
 
-### Compatibility notes
-
-- The gem uses CSV 0.0.1 and ERB below 5 because its existing calls pass options
-  positionally. Gems that require a different CSV version need a separate bundle.
-
 ## Installation
 
 Download the gem from [GitHub Releases](https://github.com/misasa/casteml/releases).

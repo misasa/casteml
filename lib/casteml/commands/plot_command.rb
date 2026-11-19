@@ -138,9 +138,9 @@ EOS
         regexp = nil
         regexp = params[:regexp] if params[:regexp]
         acq = "5f"
-        output_plotfile(plotfile_path, ERB.new(template,nil,'-',"@output").result(binding))
+        output_plotfile(plotfile_path, ERB.new(template, trim_mode: '-', eoutvar: '@output').result(binding))
 	    # File.open(plotfile_path,"w") do |plot|
-     #    	plot.puts ERB.new(template,nil,'-',"@output").result(binding)
+     #    	plot.puts ERB.new(template, trim_mode: '-', eoutvar: '@output').result(binding)
      #    end
         Dir.chdir(dir){
         	Casteml.exec_command("R --vanilla --slave < #{File.basename(plotfile_path)}")

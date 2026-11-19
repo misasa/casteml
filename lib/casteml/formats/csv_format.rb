@@ -240,7 +240,7 @@ module Casteml::Formats
 			# 	unit_names.concat(spot_methods.map{|sp| ""}) unless without_spot
 			# 	unit_names.concat(array_of_units)
 			# end
-			string = CSV.generate("", csv_opts) do |csv|
+			string = CSV.generate("", **csv_opts) do |csv|
 				csv << column_names
 				csv << unit_names if unit_separate
 				hashs.each_with_index do |h, idx|
@@ -312,7 +312,7 @@ module Casteml::Formats
 		end
 
 		def self.transpose(string, opts = {})
-			csv = CSV.new(string, opts)
+			csv = CSV.new(string, **opts)
 			array_of_arrays = csv.to_a
 			max_items = array_of_arrays.map{|array| array.size }.max
 			unless array_of_arrays.all?{|array| array.size == max_items }
@@ -322,7 +322,7 @@ module Casteml::Formats
 					end
 				end
 			end
-			csv_string = CSV.generate("", opts) do |csv|
+			csv_string = CSV.generate("", **opts) do |csv|
 				array_of_arrays.transpose.each do |array|
 					csv << array
 				end
@@ -347,7 +347,7 @@ module Casteml::Formats
 					v
 				end
 			end
-			csv = CSV.new(sio, {
+			csv = CSV.new(sio, **{
 				:headers => true, 
 				:header_converters => strip_filter,
 				:converters => strip_filter

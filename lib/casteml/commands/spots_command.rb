@@ -206,7 +206,7 @@ EOS
         ref_width = ref_relwidth # overpic is relative anyway 2014-09-12
         # diam = ref_width * Math::sqrt(acq.abundance/ref_ab)
         puts "#{fileout} writing..."
-        @output_file.puts ERB.new(template,nil,'-',"@output").result(binding)
+        @output_file.puts ERB.new(template, trim_mode: '-', eoutvar: '@output').result(binding)
   #    rescue => ex
   #      puts "#{ex.class}: #{ex.message}"
   #      exit

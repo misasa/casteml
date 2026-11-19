@@ -22,9 +22,8 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'activesupport', '>= 5.0', '< 9'
   spec.add_runtime_dependency 'alchemist', '~> 0.1.7'
-  # These versions accept the positional options used by the existing code.
-  spec.add_runtime_dependency 'csv', '= 0.0.1'
-  spec.add_runtime_dependency 'erb', '>= 2.1', '< 5'
+  spec.add_runtime_dependency 'csv'
+  spec.add_runtime_dependency 'erb'
   spec.add_runtime_dependency 'medusa_rest_client', '~> 1.5', '>= 1.5.4'
   spec.add_runtime_dependency 'rexml', '>= 3.2', '< 4'
 
