@@ -182,7 +182,6 @@ EOS
 		header = header.to_s.empty? ? '' : "#{header} "
 		@parser.separator " #{header}Options:"
 		option_list.each do |args, handler|
-			args.select{ |arg| arg =~ /^-/ }
 			@parser.on(*args) do |value|
 				handler.call(value, @options)
 			end

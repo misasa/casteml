@@ -27,7 +27,6 @@ module Casteml::Commands
 
 		describe "#read_template" do
 		it "reads the packaged template" do
-			pending "PlotCommand uses File.exists?, removed in Ruby 3.2" unless File.respond_to?(:exists?)
 			cmd = cmd_class.new
 			path = cmd.default_template(nil)
 			expect(cmd.read_template(path)).to eq(File.read(path))
@@ -68,9 +67,6 @@ module Casteml::Commands
 					setup_empty_dir('tmp')
 					setup_file(path)
 					allow(Casteml).to receive(:exec_command)
-					unless File.respond_to?(:exists?)
-						allow(cmd).to receive(:read_template) { |template_path| File.read(template_path) }
-					end
 				end
 
 				it "execute R" do
@@ -108,9 +104,6 @@ module Casteml::Commands
 					setup_empty_dir('tmp')
 					setup_file(path)
 					allow(Casteml).to receive(:exec_command)
-					unless File.respond_to?(:exists?)
-						allow(cmd).to receive(:read_template) { |template_path| File.read(template_path) }
-					end
 					#allow(Casteml).to receive(:convert_file)
 				end
 

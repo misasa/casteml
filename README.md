@@ -7,16 +7,12 @@ datasets locally, and transfer analyses to and from Medusa.
 
 ## Requirements
 
-- Ruby 2.6 through 4.0. See the compatibility notes below for individual commands.
+- Ruby 2.6 through 4.0.
 - [medusa_rest_client](https://github.com/misasa/medusa_rest_client) 1.5.4 or later in the 1.x series.
 - For plotting, R on your PATH. For PDF tables, `pdflatex` and the `pmlatex` LaTeX package.
 
 ### Compatibility notes
 
-- `casteml plot` cannot load its R template on Ruby 3.2 or later because it calls
-  `File.exists?`, which Ruby removed.
-- `casteml spots` cannot initialize its command-line options on Ruby 4.0 because
-  it calls `Object#=~` on an option type.
 - The gem uses CSV 0.0.1 and ERB below 5 because its existing calls pass options
   positionally. Gems that require a different CSV version need a separate bundle.
 

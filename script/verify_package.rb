@@ -59,10 +59,7 @@ Dir.mktmpdir('casteml-package-') do |directory|
     help = run.call(*command, '--help')
     abort "Unexpected help from casteml:\n#{help}" unless help.include?('Usage:') && help.include?('--version')
 
-    subcommands = %w[convert download join plot split upload]
-    # Ruby 4.0 removed Object#=~, which the existing spots option setup uses.
-    subcommands << 'spots' if Array.respond_to?(:=~)
-    subcommands.each do |subcommand|
+    %w[convert download join plot split spots upload].each do |subcommand|
       help = run.call(*command, subcommand, '--help')
       abort "Unexpected help from casteml #{subcommand}:\n#{help}" unless help.include?("casteml #{subcommand}") && help.include?('--help')
     end

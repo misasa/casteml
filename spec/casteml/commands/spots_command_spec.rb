@@ -10,7 +10,6 @@ module Casteml::Commands
 
 		describe "#show_help", :show_help => true do
 			it {
-				pending "SpotsCommand option setup uses Object#=~, removed in Ruby 4.0" unless Array.respond_to?(:=~)
 				puts "===================================="
 				expect{ cmd.show_help }.not_to raise_error
 				puts "===================================="
@@ -18,9 +17,6 @@ module Casteml::Commands
 		end
 
 		describe "#invoke_with_build_args" do
-			before do
-				skip "SpotsCommand cannot configure its options without Object#=~" unless Array.respond_to?(:=~)
-			end
 			subject{cmd.invoke_with_build_args args, build_args}
 			let(:build_args){ [] }
 			context "without args" do

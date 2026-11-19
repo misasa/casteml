@@ -108,7 +108,7 @@ EOS
     end
 
 	def read_template(path)
-		raise "Colud not find #{path}. Specify TEMPLATE_PATH" unless File.exists?(path)
+		raise "Colud not find #{path}. Specify TEMPLATE_PATH" unless File.exist?(path)
 		File.read(path)
 	end
 
