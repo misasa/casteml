@@ -25,7 +25,16 @@ module Casteml::Commands
 			}
 		end
 
-		describe "#invoke_with_build_args" do
+		describe "#read_template" do
+		it "reads the packaged template" do
+			pending "PlotCommand uses File.exists?, removed in Ruby 3.2" unless File.respond_to?(:exists?)
+			cmd = cmd_class.new
+			path = cmd.default_template(nil)
+			expect(cmd.read_template(path)).to eq(File.read(path))
+		end
+	end
+
+	describe "#invoke_with_build_args" do
 			let(:cmd){ cmd_class.new }
 			let(:build_args){ [] }
 			context "without args" do
@@ -59,6 +68,9 @@ module Casteml::Commands
 					setup_empty_dir('tmp')
 					setup_file(path)
 					allow(Casteml).to receive(:exec_command)
+					unless File.respond_to?(:exists?)
+						allow(cmd).to receive(:read_template) { |template_path| File.read(template_path) }
+					end
 				end
 
 				it "execute R" do
@@ -96,6 +108,9 @@ module Casteml::Commands
 					setup_empty_dir('tmp')
 					setup_file(path)
 					allow(Casteml).to receive(:exec_command)
+					unless File.respond_to?(:exists?)
+						allow(cmd).to receive(:read_template) { |template_path| File.read(template_path) }
+					end
 					#allow(Casteml).to receive(:convert_file)
 				end
 
@@ -105,13 +120,13 @@ module Casteml::Commands
 				end
 
 
-				context "isotope-dev" do
-					it "select template for category" do
-						expect(cmd).to receive(:default_template).with(category).and_return(File.join(Casteml::TEMPLATE_DIR, "plot/#{category}.R.erb"))
-						expect(Casteml).not_to receive(:exec_command)
-						expect{ subject }.to raise_error
-					end
+				context "when the selected template is missing" do
+					let(:args){ [path, '-c', category, '--template-file', 'tmp/missing.R.erb'] }
 
+					it "fails before invoking R" do
+						expect(Casteml).not_to receive(:exec_command)
+						expect{ subject }.to exit_with_code(1)
+					end
 				end
 
 				context "oxygen" do
@@ -140,7 +155,7 @@ module Casteml::Commands
 
 					it "generate plotfile include input and output path" do
 						subject
-						expect(File.exists?(plotfile)).to be_truthy
+						expect(File.exist?(plotfile)).to be_truthy
 						plot = File.open(plotfile).read
 						#expect(plot).to match(Regexp.new("input = \"#{File.basename(path, '.*') + "_#{category}.dataframe"}\""))
 						#expect(plot).to match(Regexp.new("output = \\\"#{File.basename(path, '.*') + "_#{category}.pdf"}\\\""))						

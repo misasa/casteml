@@ -8,25 +8,27 @@ Gem::Specification.new do |spec|
   spec.version       = Casteml::VERSION
   spec.authors       = ["Yusuke Yachi"]
   spec.email         = ["yyachi@misasa.okayama-u.ac.jp"]
-  spec.summary       = %q{A Gem for CASTEML.}
-  spec.description   = %q{This is a gem for CASTEML.}
-  spec.homepage      = "http://devel.misasa.okayama-u.ac.jp/gitlab/gems/casteml"
-  spec.license       = "MIT"
+  spec.summary       = "Command-line utilities for CASTEML datasets"
+  spec.description   = "Convert, join, split, and plot CASTEML datasets and transfer them to and from Medusa."
+  spec.homepage      = "https://github.com/misasa/casteml"
+  spec.license       = "GPL-3.0-or-later"
+  spec.required_ruby_version = ">= 2.6.0"
 
-  spec.files         = `git ls-files -z`.split("\x0")
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.files         = %w[LICENSE.txt README.md bin/casteml] +
+                       Dir['lib/**/*.rb', 'config/alchemist/*.yml',
+                           'remote_dump/MedusaRestClient/*.marshal', 'template/**/*.erb'].sort
+  spec.executables   = ["casteml"]
   spec.require_paths = ["lib"]
-  spec.add_runtime_dependency 'medusa_rest_client', '~> 1.0'
-  spec.add_runtime_dependency 'alchemist', '~> 0.1.7'
-#  spec.add_runtime_dependency 'bigdecimal', "~> 1.4"
-  spec.add_development_dependency "bundler", "~> 1.5"
-  spec.add_development_dependency "rake", "~> 13.0.1"
-  spec.add_development_dependency "rspec", "~> 3.0.0"
-  spec.add_development_dependency "geminabox", "~> 1.2.0"
-  #spec.add_development_dependency "simplecov-rcov", "~> 0.2.3"
-  #spec.add_development_dependency "rspec_junit_formatter", "~> 0.2.0"
-  #spec.add_development_dependency "ci_reporter_rspec", "~> 1.0.0"
-  #spec.add_development_dependency "ci_reporter", "~> 2.0.0"
 
+  spec.add_runtime_dependency 'activesupport', '>= 5.0', '< 9'
+  spec.add_runtime_dependency 'alchemist', '~> 0.1.7'
+  # These versions accept the positional options used by the existing code.
+  spec.add_runtime_dependency 'csv', '= 0.0.1'
+  spec.add_runtime_dependency 'erb', '>= 2.1', '< 5'
+  spec.add_runtime_dependency 'medusa_rest_client', '~> 1.5', '>= 1.5.4'
+  spec.add_runtime_dependency 'rexml', '>= 3.2', '< 4'
+
+  spec.add_development_dependency "bundler", ">= 2.4", "< 5"
+  spec.add_development_dependency "rake", ">= 13.0", "< 14"
+  spec.add_development_dependency "rspec", "~> 3.13"
 end

@@ -1,3 +1,4 @@
+require "bundler/setup"
 require "bundler/gem_tasks"
 require 'casteml'
 require 'medusa_rest_client'

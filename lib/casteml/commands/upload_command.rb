@@ -1,7 +1,7 @@
 require 'casteml/command'
 class Casteml::Commands::UploadCommand < Casteml::Command
 	def initialize
-		super 'upload', '    Upload a pmlfile to Medusa' # Summary:
+		super 'upload', '    Upload a dataset to Medusa' # Summary:
 	end
 
 	def usage
@@ -10,36 +10,24 @@ class Casteml::Commands::UploadCommand < Casteml::Command
 
 	def arguments
 	<<-EOS
-    PMLFILE    A pmlfile to be uploaded
+    PMLFILE    PML file containing the acquisitions to upload
 EOS
 	end
 
 	def description
 	<<-EOF
-    Upload pmlfile to Medusa.  See `casteml convert --help' for data
-    format.  Note that these also is program to upload files named
-    `orochi-upload'.
+    Save the analyses and their measurements to Medusa. See
+    casteml convert --help for supported input formats. Specify the
+    associated stone in the input dataset.
 
-    This program `#{program_name}' creates sessions (also referred as
-    analyses) that unite chemical datasets.  You want to correlate
-    each session to a stone.  To do so stone-ID should be specified in
-    pmlfile since `#{program_name}' does not take stone-ID as an
-    option.
+    If an analysis includes a spot, describe its reference image in
+    the input file. The image center is the origin, and coordinates
+    are normalized so the longest side spans -50 to 50. The MATLAB
+    script spots.m can create input files with spot coordinates.
 
-    This program `#{program_name}' stores location (also referred as
-    spot) of a session (also referred as analysis) as relative
-    coordinate of an imagefile.  Origin of a coordinate is center of
-    an image.  A spot coordinate is normalized by the longest side.
-    As a consequence, the longest side ranges from -50 to 50.  Use a
-    Matlab script `spot.m' to create pmlfile with spots, and follow
-    instrution provided by `spots.m'.
-
-    This program `#{program_name}' uploads datasets, coordinates, and
-    imagefile `my-spots-picture.jpg'.  Note imagefile is described in
-    pmlfile and NOT in arguments.  When this program finds imageometry
-    file file `my-spots-picture.geo' (Affine matrix of xy-on-image to
-    vs space), it also uploads it.  Use `spots.m' to create pmlfile
-    with spots.  An example of the imageometry file is shown below.
+    An image can be referenced by its Medusa ID or by a local path.
+    A matching .geo file can supply the affine transformation to
+    stage coordinates when the client uploads the image.
 
     $ cat my-spots-picture.geo
     affine_xy2vs:

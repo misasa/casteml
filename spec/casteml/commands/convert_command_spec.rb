@@ -206,17 +206,17 @@ module Casteml::Commands
 				end
 
 				it "calls Casteml.decode_file with path" do
-					expect(Casteml).to receive(:convert_file).with(path, :output_format => :tex).and_return('tex')
+					expect(Casteml).to receive(:convert_file).with(path, {:output_format => :tex}).and_return('tex')
 					subject
 				end
 
 				it "calls Casteml.encode with options" do
-					expect(Casteml).to receive(:encode).with(data,:without_error => false, :output_format => :tex, :number_format => "%.4g").and_return('tex')
+					expect(Casteml).to receive(:encode).with(data, {:without_error => false, :output_format => :tex, :number_format => "%.4g"}).and_return('tex')
 					subject
 				end
 
 				it "calls Casteml::Formats::TexFormat.to_string with options" do
-					expect(Casteml::Formats::TexFormat).to receive(:to_string).with(data,:without_error => false, :number_format => "%.4g").and_return('tex')
+					expect(Casteml::Formats::TexFormat).to receive(:to_string).with(data, {:without_error => false, :number_format => "%.4g"}).and_return('tex')
 					subject
 				end
 
@@ -238,17 +238,17 @@ module Casteml::Commands
 				end
 
 				it "calls Casteml.decode_file with path" do
-					expect(Casteml).to receive(:convert_file).with(path, :output_format => :tex, :number_format => "%.3f").and_return('tex')
+					expect(Casteml).to receive(:convert_file).with(path, {:output_format => :tex, :number_format => "%.3f"}).and_return('tex')
 					subject
 				end
 
 				it "calls Casteml.encode with options" do
-					expect(Casteml).to receive(:encode).with(data,:without_error => false, :output_format => :tex, :number_format => "%.3f").and_return('tex')
+					expect(Casteml).to receive(:encode).with(data, {:without_error => false, :output_format => :tex, :number_format => "%.3f"}).and_return('tex')
 					subject
 				end
 
 				it "calls Casteml::Formats::TexFormat.to_string with options" do
-					expect(Casteml::Formats::TexFormat).to receive(:to_string).with(data, :without_error => false, :number_format => "%.3f").and_return('tex')
+					expect(Casteml::Formats::TexFormat).to receive(:to_string).with(data, {:without_error => false, :number_format => "%.3f"}).and_return('tex')
 					subject
 				end
 
@@ -272,7 +272,7 @@ module Casteml::Commands
 					let(:args){ ['-t', '-f', 'csv', path]}
 					it "call Casteml.convert_file with transpose option" do
 						expect(Casteml).to receive(:decode_file).with(path).and_return(data)
-						expect(Casteml).to receive(:encode).with(data ,:without_error => false, :output_format => :csv, :transpose => true).and_return('csv')
+						expect(Casteml).to receive(:encode).with(data, {:without_error => false, :output_format => :csv, :transpose => true}).and_return('csv')
 						expect(cmd).to receive(:output).with('csv')
 						subject
 					end
@@ -404,13 +404,13 @@ module Casteml::Commands
 				end
 
 				it "calls Casteml.convert_file with path and options" do
-					expect(Casteml).to receive(:convert_file).with(path, :output_format => :dataframe, :with_category => "trace")
+					expect(Casteml).to receive(:convert_file).with(path, {:output_format => :dataframe, :with_category => "trace"})
 					cmd.invoke_with_build_args args, build_args
 				end
 
 				it "calls Casteml.encode with array and options" do
 					expect(Casteml).to receive(:decode_file).with(path).and_return(data_array)
-					expect(Casteml).to receive(:encode).with(data_array ,:without_error => false, :output_format => :dataframe, :with_unit => "ug/g", :with_nicknames => Casteml::MeasurementCategory.find_by_name("trace").nicknames)
+					expect(Casteml).to receive(:encode).with(data_array, {:without_error => false, :output_format => :dataframe, :with_unit => "ug/g", :with_nicknames => Casteml::MeasurementCategory.find_by_name("trace").nicknames})
 					cmd.invoke_with_build_args args, build_args
 				end
 
