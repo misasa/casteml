@@ -8,12 +8,12 @@ class Casteml::Commands::DownloadCommand < Casteml::Command
 
 	def arguments
 	<<-EOS
-    ID0   ID of a record in Medusa
+    ID0, ID1, ...   Medusa record IDs
 EOS
 	end
 
     def initialize
-	  super 'download', '    Download pmlfile from Medusa' # Summary:
+	  super 'download', '    Download datasets from Medusa' # Summary:
 
 	  add_option('-f', '--format OUTFORMAT',
 				 'Output format (pml, csv, tsv, org, isorg, tex, pdf, dataframe)') do |v, options|
@@ -21,43 +21,37 @@ EOS
 	  end
 
 	  add_option('-r', '--descendant',
-				 'Analyses with descendants of a stone') do |v|
+				 'Include analyses for the stone and its descendants') do |v|
 		options[:recursive] = :self_and_descendants
 	  end
 
 	  add_option('-R', '--family',
-				 'Analyses with a whole family of a stone') do |v|
+				 'Include analyses for the entire stone family') do |v|
 		options[:recursive] = :families
 	  end
 
 	  add_option('-n', '--number-format NUMFORMAT',
-				 'Number format (%.4g)') do |v, options|
+				 'Number format for LaTeX-based output (default: %.4g)') do |v, options|
 		options[:number_format] = v
 	  end
 	end
 
 	def description
     <<-EOS
-    Download pmlfile from Medusa.  Specify ID as argument.  This
-    returns pmlfiles linked to corresponding record.  Default output
-    is toward to the standard output.  Redirect to certain file.
+    Download analyses for one or more Medusa records and write the
+    combined dataset to standard output. The default format is PML.
+    Redirect the output to save it to a file.
 
-    This accepts both stone-ID, box-ID, session-ID (also referred as
-    analysis-ID), bib-ID, table-ID, and image-ID.  For image-ID,
-    analyses linked via spot record are returned.  For bib-ID,
-    analyses directly linked to the bib record are returned.  Only for
-    stone-ID and box-ID, recursive download is available.  Unless
-    stone-ID or box-ID is specified, recursive option is ignored.
-    Note that option '--Recursive' with box-ID takes huge amount of
-    time.
+    Record IDs can identify stones, boxes, sessions (analyses),
+    bibliography records, tables, or images. An image ID selects
+    analyses linked through spots, and a bibliography ID selects
+    analyses linked directly to that record.
 
-    This command accept more than one ID.  Note that you can also
-    obtain a multi-pmlfile for a whole family.  If you need a
-    multi-pmlfile, (1) download simultaneously or (2) separately then
-    join them by a command `casteml join'.
+    Use --descendant or --family with stone or box IDs. The server
+    handles the recursive request for each ID. Fetching an entire
+    family for a box can take a long time.
 
-    You may want to plot the multi-pmlfile by a command `casteml
-    plot'.
+    To combine datasets you downloaded separately, use casteml join.
 EOS
 	end
 

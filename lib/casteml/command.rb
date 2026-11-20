@@ -53,7 +53,7 @@ EOS
     
     def implementation
       <<-EOS
-    Orochi, version 9
+    Casteml
     Copyright (C) 2015-2020 Okayama University
     License GPLv3+: GNU GPL version 3 or later
 EOS
@@ -182,7 +182,6 @@ EOS
 		header = header.to_s.empty? ? '' : "#{header} "
 		@parser.separator " #{header}Options:"
 		option_list.each do |args, handler|
-			args.select{ |arg| arg =~ /^-/ }
 			@parser.on(*args) do |value|
 				handler.call(value, @options)
 			end
@@ -191,7 +190,7 @@ EOS
 		end
 	end
 
-	add_common_option('-h', '--help', 'Get help on this command') do |value, options|
+	add_common_option('-h', '--help', 'Show help for this command') do |value, options|
 		options[:help] = true
 	end
 

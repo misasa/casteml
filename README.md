@@ -1,77 +1,82 @@
-# gem package -- casteml
-[![GPL v3](https://img.shields.io/badge/license-GPL_v3-green.svg)](http://www.gnu.org/licenses/gpl-3.0.txt)
+# casteml
 
-A series of comprehensive utilities that handles CASTEML.
+[![GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-green.svg)](LICENSE.txt)
 
-# Description
+Command-line utilities for CASTEML datasets. Convert, combine, and split
+datasets locally, and transfer analyses to and from Medusa.
 
-A series of comprehensive utilities that handles CASTEML.  The
-utilities download/upload datasets from/to Medusa.  The utilities
-join, split, and convert datasets.
+## Requirements
 
-# Dependency
+- Ruby 2.6 through 4.0.
+- [medusa_rest_client](https://github.com/misasa/medusa_rest_client) 1.5.4 or later in the 1.x series.
+- For plotting, R on your PATH. For PDF tables, `pdflatex` and the `pmlatex` LaTeX package.
 
-## [Ruby](https://www.ruby-lang.org "follow instruction")
-Ruby 2.5, 2.6, or 2.7.
+## Installation
 
-## [gem package -- medusa_rest_client](https://github.com/misasa/medusa_rest_client "follow instruction")
+Download the gem from [GitHub Releases](https://github.com/misasa/casteml/releases).
+From a checkout, run the download script to verify the SHA-256 manifest before
+saving the files:
 
-# Installation
-
-Install it yourself as:
-
-    $ gem source -a http://dream.misasa.okayama-u.ac.jp/rubygems/
-    $ gem install casteml
-
-The program reads a configuration file `~/.orochirc`.  The file should look like below.
-
-    ---
-    uri: https://dream.misasa.okayama-u.ac.jp/demo
-    user: admin
-    password: admin
-
-# Commands
-
-Commands are summarized as:
-
-| command          | description                                 | note                       |
-|------------------|---------------------------------------------|----------------------------|
-| casteml convert  | Transform CSV, TSV, ORG, ISORG, and pmlfile |                            |
-| casteml spots    | Create a LaTeX file with spots from pmlfile | isocircle option available |
-| casteml join     | Create a multi-pmlfile from single pmlfiles |                            |
-| casteml split    | Create single pmlfiles from a multi-pmlfile |                            |
-| casteml upload   | Upload pmlfile to Medusa                    |                            |
-| casteml download | Download pmlfile from Medusa                |                            |
-| casteml plot     | Make a plot using pmlfile                   |                            |
-
-# Usage
-
-See online document with option `--help`.
-
-# Developer's guide
-
-1. Run test as shown below.
-
-```
-$ cd ~/devel-godigo/gems/casteml
-$ bundle install --path vendor/bundle
-$ bundle exec rspec spec/casteml/command_manager_spec.rb
-$ bundle exec rspec spec/casteml/commands/convert_command_spec.rb --tag show_help:true
-$ bundle exec rspec spec/casteml/commands/spots_command_spec.rb --tag show_help:true
-$ bundle exec rspec spec/casteml/commands/join_command_spec.rb --tag show_help:true
-$ bundle exec rspec spec/casteml/commands/split_command_spec.rb --tag show_help:true
-$ bundle exec rspec spec/casteml/commands/upload_command_spec.rb --tag show_help:true
-$ bundle exec rspec spec/casteml/commands/download_command_spec.rb --tag show_help:true
-$ bundle exec rspec spec/casteml/commands/plot_command_spec.rb --tag show_help:true
+```sh
+bash script/download_release.sh --version 1.1.3
 ```
 
-2. Push to the Git server.
+Download `medusa_rest_client-1.5.4.gem` from its
+[v1.5.4 release](https://github.com/misasa/medusa_rest_client/releases/tag/v1.5.4)
+and install it before installing Casteml:
 
-3. Access to Jenkins server http://devel.misasa.okayama-u.ac.jp/jenkins/job/Casteml/ and run a job.  This is scheduled and if you are not in hurry, skip further steps.
-
-4. Uninstall and install local gem module as shown below.
-
+```sh
+gem install ./medusa_rest_client-1.5.4.gem
+gem install ./casteml-1.1.3.gem
 ```
-$ sudo gem uninstall casteml
-$ sudo gem install casteml
+
+For commands that connect to Medusa, put the server URL and your credentials in
+`~/.orochirc`:
+
+```yaml
+---
+uri: https://medusa.example.org
+user: YOUR_USERNAME
+password: YOUR_PASSWORD
 ```
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `casteml convert` | Convert PML, CSV, TSV, Org, or ISORG input to another format. |
+| `casteml spots` | Write a LaTeX overlay for spots and isocircles. |
+| `casteml join` | Combine acquisitions from PML files into one PML file. |
+| `casteml split` | Write one PML file per acquisition alongside the input file. |
+| `casteml upload` | Save analyses and their measurements to Medusa. |
+| `casteml download` | Download analyses for one or more Medusa records. |
+| `casteml plot` | Generate a data table and R script, then run R. |
+
+Run `casteml --help` for an overview or `casteml convert --help` for a
+command's options and examples.
+
+## Development
+
+The Gemfile uses the public GitHub tag for `medusa_rest_client`. Use Bundler
+2.4.22 on Ruby 2.6 or 2.7.
+
+```sh
+bundle install
+bundle exec rspec
+bundle exec rake build
+bundle exec ruby script/verify_package.rb
+```
+
+Package verification installs the archive in a temporary gem directory, checks
+the installed CLI and version, and converts a sample PML file to CSV offline.
+
+## CI and releases
+
+GitHub Actions runs the test suite on Ruby 2.6.10, 2.7.8, 3.2, 3.3, 3.4, and
+4.0. The workflow builds and verifies the gem, then uploads the
+`casteml-gem` artifact.
+
+Pushing a stable tag such as `v1.1.3` on a commit in `master` starts the
+Release job. The tag must match the gem version. The job checks for an
+existing release, uploads the gem and its SHA-256 manifest to a draft,
+and publishes only after downloading and comparing both assets.

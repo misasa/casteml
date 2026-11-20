@@ -8,29 +8,29 @@ class Casteml::Commands::ConvertCommand < Casteml::Command
 
 	def arguments
 	<<-EOS
-    INFILE    Input file with extension (.pml .csv .tsv .isorg)
+    INFILE    Input file (.pml, .csv, .tsv, .org, or .isorg)
 EOS
 	end
     def initialize
-		super 'convert', '    Convert (pml csv tsv isorg) to (pml csv tsv org isorg dflame tex pdf)' # Summary:
+		super 'convert', '    Convert a CASTEML dataset to another format' # Summary:
 
 		add_option('-f', '--format OUTFORMAT',
-				   'Output format (pml csv tsv org isorg dflame tex pdf)') do |v, options|
+				   'Output format (pml, csv, tsv, org, isorg, dataframe, tex, or pdf)') do |v, options|
 			options[:output_format] = v.to_sym
 		end
 
 		add_option('--medusa9',
-				   'Output in Medusa 9 format (pml).  It is strongly recommended to feed this option (February 24, 2017).') do |v, options|
+				   'Write PML in Medusa 9 format') do |v, options|
 			options[:version] = '9'
 		end
 
 		add_option('--[no-]unit [UNIT]',
-				   'Stop engineering unit-conversion or specify unit (csv tsv org isorg)') do |v, options|
+				   'Use the specified unit, or write values in parts with --no-unit') do |v, options|
 			options[:with_unit] = v
 		end
 
 		add_option('-n', '--number-format FORMAT',
-				   'Number format (%.4g).  It is not clear if this option is supported (February 24, 2017)') do |v, options|
+				   'Number format for TeX output (default: %.4g)') do |v, options|
 			options[:number_format] = v
 		end
 
@@ -38,27 +38,27 @@ EOS
 		category_names = Casteml::MeasurementCategory.record_pool.map{|category| "'" + category.name + "'"}
 
 		add_option('-c', '--category CATEGORY',
-				   "Only pass measurement category of (#{category_names.join(', ')})") do |v, options|
+				   "Filter measurements by category (#{category_names.join(', ')})") do |v, options|
 			options[:with_category] = v
 		end
 
 		add_option('-t', '--transpose',
-				   'Transpose row and column on output format (csv tsv org isorg tex)') do |v, options|
+				   'Swap rows and columns in CSV, TSV, Org, ISORG, or TeX output') do |v, options|
 			options[:transpose] = v
 		end
 
 		add_option('-a', '--average',
-				   'Output with average') do |v, options|
+				   'Append an average acquisition') do |v, options|
 			options[:with_average] = v
 		end
 
 		add_option('-s', '--smash',
-				   'Only output average') do |v, options|
+				   'Output only the average acquisition') do |v, options|
 			options[:smash] = v
 		end
 
         add_option('-p', '--place',
-                   'Export also place (latitude, longitude, elevation)') do |v, options|
+                   'Include location fields in tabular export') do |v, options|
           options[:with_place] = v
         end
 
@@ -74,56 +74,40 @@ EOS
 
 	def description
 		<<-EOF
-    Convert (pml csv tsv isorg)
-         to (pml csv tsv isorg dflame tex pdf).
-    The converted datasets are written out to standard output.  Use
-    redirect to save as file.
+    Convert PML, CSV, TSV, Org, or ISORG input. The default output is
+    CSV for PML input and PML for other inputs. Redirect standard output
+    to save the converted dataset.
 
-    See how pmlfile with analysis looks like by following command.
+    Inspect a PML file containing an analysis.
     $ casteml download 20081202172326.hkitagawa > 20081202172326.pml
     $ casteml convert 20081202172326.pml | head
     $ open http://database.misasa.okayama-u.ac.jp/stone/bibs/8.pml
 
-    See how pmlfile with analysis and spot looks like by following command.
+    Inspect a PML file containing an analysis and a spot.
     $ casteml download 20160923194512-900008 > 20160923194512-900008.pml
     $ casteml convert 20160923194512-900008.pml | head
     $ open http://database.misasa.okayama-u.ac.jp/stone/attachment_files/48326.pml
 
-    This program relays on gem-package alchemist.  As of February
-    2017, the alchemist cannot handle wt%.  Use % or cg/g instead.
+    Unit conversion uses the alchemist gem. Use % or cg/g to specify
+    a mass percentage.
 
 Format:
     pml:       The standard CASTEML file.
-    csv:       Comma Separated Values (CSV) supported as input.
-               Each stone and chem is on each row and column, respectively.
-
-               A column of chem can be accompanied by a column of
-               error of the chem.  Name of the column should be with
-               `_error' (ie, `SiO2_error' for `SiO2').
-
-               A column of chem can be accompanied by unit.  Unit of
-               the column should be specified in parenthesis following
-               the name of chem (ie, `SiO2 (wt%)' instead of `SiO2').
-               See `text' column of list in
-               `http://medusa-uri/app/units'.  Instead, you can use
-               the dedicated second row (or line) for unit.  LABEL of
-               row (or line) SHOULD BE EMPTY.
-
-               You can completely flip row and column.
-    tsv:       Tab Separated Values (TSV) supported as input.
-               Same as csv but delimiter.
-    isorg:     ORG format supported as input.
-               Same as csv but delimiter.
-    dflame     Comma Separated Values (CSV) dedicated for R input, not
-               for casteml input.  Similar to CSV but column and row
-               are flipped.  The first line is header that starts with
-               `element'.  Each stone and chem is on each column and
-               row, respectively but the second column is dedicated for
-               unit with colname `unit'.
-   tex:        Text of table dedicated for LaTeX input.  Define label used for
-               conversion at `http://medusa-uri/app/measurement_items'.  You have
-               to clear local cache by `casteml --refresh'.
-   pdf:        PDF with table that is created based on output with '-f tex' option.
+    csv:       Comma-separated values. Each row is an acquisition, and
+               each measurement has its own column. An error column adds
+               _error to the measurement name, for example SiO2_error.
+               Write units in parentheses after the measurement name,
+               such as SiO2 (cg/g), or put them in a separate second
+               row with an empty first cell. Rows and columns can be
+               transposed.
+    tsv:       Tab-separated values.
+    org:       An Org-mode table delimited by vertical bars.
+    isorg:     An Org-mode table in the ISORG format.
+    dataframe: A CSV table for R, also available as dflame. The first
+               two columns are element and unit, followed by acquisitions.
+   tex:        A LaTeX table. Measurement labels come from Medusa.
+               Run casteml --refresh after changing them on the server.
+   pdf:        Compile the LaTeX table with pdflatex and the pmlatex package.
 EOF
 	end
 

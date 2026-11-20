@@ -1,38 +1,140 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will download a prebuilt Ruby version, install dependencies and run tests with Rake
-# For more information see: https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
-
 name: Ruby
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+    tags: ['v*']
   pull_request:
-    branches: [ master ]
+    branches: [master]
+
+permissions:
+  contents: read
 
 jobs:
   test:
-
-    runs-on: ubuntu-latest
-
+    name: Ruby ${{ matrix.ruby }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ '2.5', '2.6', '2.7' ]
-
+        include:
+          - ruby: '2.6.10'
+            bundler: '2.4.22'
+            rubygems: '3.4.22'
+          - ruby: '2.7.8'
+            bundler: '2.4.22'
+            rubygems: '3.4.22'
+          - ruby: '3.2'
+          - ruby: '3.3'
+          - ruby: '3.4'
+          - ruby: '4.0'
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby
-    # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
-    # change this to (see https://github.com/ruby/setup-ruby#versioning):
-    # uses: ruby/setup-ruby@v1
-      uses: ruby/setup-ruby@21351ecc0a7c196081abca5dc55b08f085efe09a
-      with:
-        ruby-version: ${{ matrix.ruby }}
-    - name: Install dependencies
-      run: bundle install
-    - name: Run tests
-      run: bundle exec rspec
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler: ${{ matrix.bundler }}
+          rubygems: ${{ matrix.rubygems }}
+          bundler-cache: true
+      - name: Run tests
+        run: bundle exec rspec
+      - name: Check download script syntax
+        run: bash -n script/download_release.sh
+
+  package:
+    name: Build gem
+    needs: test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6.10'
+          rubygems: '3.4.22'
+          bundler: '2.4.22'
+          bundler-cache: true
+      - name: Build and verify the installed gem
+        id: build
+        run: |
+          bundle exec rake build
+          archive="$(ruby -e 'puts "pkg/#{Gem::Specification.load("casteml.gemspec").file_name}"')"
+          bundle exec ruby script/verify_package.rb "$archive"
+          printf 'path=%s\n' "$archive" >> "$GITHUB_OUTPUT"
+      - name: Upload the gem
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: casteml-gem
+          path: ${{ steps.build.outputs.path }}
+          if-no-files-found: error
+
+  release:
+    name: Publish verified gem
+    needs: package
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: casteml-release-${{ github.ref }}
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6.10'
+          rubygems: '3.4.22'
+          bundler: 'none'
+      - name: Check master ancestry, tag, version and existing releases
+        id: package
+        run: |
+          set -euo pipefail
+          git fetch origin '+refs/heads/master:refs/remotes/origin/master' --tags
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          filename="$(ruby script/verify_release.rb "$RELEASE_TAG" "$GITHUB_SHA" "$RUNNER_TEMP/releases.json")"
+          printf 'filename=%s\n' "$filename" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v8
+        with:
+          name: casteml-gem
+          path: pkg
+      - name: Generate SHA-256 manifest
+        env:
+          GEM_FILENAME: ${{ steps.package.outputs.filename }}
+        run: |
+          set -euo pipefail
+          ruby -rrubygems/package -e '
+            package = Gem::Package.new(ARGV.fetch(0))
+            package.verify
+            abort "Archive filename mismatch" unless package.spec.file_name == File.basename(ARGV.fetch(0))
+            abort "Archive tag mismatch" unless ENV.fetch("RELEASE_TAG") == "v#{package.spec.version}"
+          ' "pkg/$GEM_FILENAME"
+          (cd pkg && sha256sum "$GEM_FILENAME" > "$GEM_FILENAME.sha256")
+      - name: Upload draft, verify uploaded bytes, then publish
+        env:
+          GEM_FILENAME: ${{ steps.package.outputs.filename }}
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          ruby script/verify_release.rb "$RELEASE_TAG" "$GITHUB_SHA" "$RUNNER_TEMP/releases.json"
+          gh release create "$RELEASE_TAG" \
+            "pkg/$GEM_FILENAME" "pkg/$GEM_FILENAME.sha256" \
+            --verify-tag --draft --title "$RELEASE_TAG" \
+            --notes "Tested on Ruby 2.6.10, 2.7.8, 3.2, 3.3, 3.4 and 4.0. Download the gem and SHA-256 manifest below."
+          uploaded="$(mktemp -d)"
+          gh release download "$RELEASE_TAG" --dir "$uploaded" \
+            --pattern "$GEM_FILENAME" --pattern "$GEM_FILENAME.sha256"
+          cmp "pkg/$GEM_FILENAME" "$uploaded/$GEM_FILENAME"
+          cmp "pkg/$GEM_FILENAME.sha256" "$uploaded/$GEM_FILENAME.sha256"
+          (cd "$uploaded" && sha256sum --check "$GEM_FILENAME.sha256")
+          gh release edit "$RELEASE_TAG" --draft=false
+          printf 'Published `%s` with SHA-256 checksum.\n' "$GEM_FILENAME" >> "$GITHUB_STEP_SUMMARY"

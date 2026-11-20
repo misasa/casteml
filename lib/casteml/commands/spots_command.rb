@@ -9,19 +9,19 @@ class Casteml::Commands::SpotsCommand < Casteml::Command
 	include Casteml::TexHelper
 
 	def usage
-		 "#{program_name} PMLFILE ABUNDANCE ISOTOPE"
+		 "#{program_name} PMLFILE [ISOTOPE | ABUNDANCE ISOTOPE]"
 	end
 
 	def arguments
 	<<-EOS
-    PMLFILE      A member of CASTEML family that can be either pmlfile, isorgfile, or csvfile
-    ABUNDANCE    Name of column with element abundance that determines dimension of isocircle
-    ISOTOPE      Name of column with isotope abundance that detremines angle of thread
+    PMLFILE      Input CASTEML dataset (.pml, .csv, .tsv, .org, or .isorg)
+    ABUNDANCE    Measurement name for the abundance that sets the circle size
+    ISOTOPE      Measurement name for the isotope value that sets the arrow angle
 EOS
 	end
 
     def initialize
-		super 'spots', '    Export spots info in pmlfile to texfile' # Summary:
+		super 'spots', '    Export spot overlays to a LaTeX file' # Summary:
 
 	    @params = {
 	    	:image_width => 0.49,
@@ -29,20 +29,20 @@ EOS
 	    	:scale_iso_range_min_max => [-20,20],
       		:template_file => File.join(Casteml::TEMPLATE_DIR, 'spots.tex.erb')
       	}
-        add_option("-o", "--output path", "Output texfile (default: INPUTFILE-isocirc.tex)") do |v|
+        add_option("-o", "--output path", "Output LaTeX path (default: INPUT_BASENAME-isocirc.tex)") do |v|
           options[:output_file] = v
         end
 
-        add_option("-p", "--picture path", "Input imagefile (default: INPUTFILE)") do |v|
+        add_option("-p", "--picture path", "Image path for the overlay (default: input basename)") do |v|
           options[:picture_file] = v
         end
-        add_option("-w", "--image-width NUM", "Image width in percent relative to an image (default: #{@params[:image_width]})") do |v|
+        add_option("-w", "--image-width NUM", "Image width as a fraction of the LaTeX text width (default: #{@params[:image_width]})") do |v|
           options[:image_width] = v
         end
         add_option("-t", "--template-file path", "Template file path (default: #{@params[:template_file]})") do |v|
           options[:template_file] = v
         end
-        add_option("-a", "--scale-ab-rel-to-image-width NUM1,NUM2", Array, "Circle scale: Element abundance NUM1 in g/g unit will be expressed by a circle with width NUM2 in percent relative to an image (default: #{@params[:scale_ab_rel_to_image_width].join(',')})") do |v|
+        add_option("-a", "--scale-ab-rel-to-image-width NUM1,NUM2", Array, "Reference circle for abundance NUM1 (g/g) with diameter NUM2 (% of image width) (default: #{@params[:scale_ab_rel_to_image_width].join(',')})") do |v|
           if v.length != 2
 			raise OptionParser::InvalidArgument.new("incorrect number of arguments for scale-ab-rel-to-image-width")
           end
@@ -50,7 +50,7 @@ EOS
           options[:scale_ab_rel_to_image_width] = v
         end
 
-        add_option("-i", "--scale-iso-range-min-max NUM1,NUM2", Array, "Scale isotope range from NUM1 to NUM2 (default: #{params[:scale_iso_range_min_max].join(',')})") do |v|
+        add_option("-i", "--scale-iso-range-min-max NUM1,NUM2", Array, "Map isotope values from NUM1 to NUM2 to arrow angles (default: #{params[:scale_iso_range_min_max].join(',')})") do |v|
           if v.length != 2
             raise OptionParser::InvalidArgument.new("incorrect number of arguments for scale-iso-range-min-max")
           end
@@ -61,20 +61,14 @@ EOS
 
 	def description
 	<<-EOS
-    Process pmlfile (created by Matlab-script `spots.m') and generate
-    texfile with spots and isocircles.
+    Write a LaTeX overlay for measurement spots. Provide only the
+    input file for plain spot markers, add an isotope measurement for
+    fixed-size isocircles, or give both an abundance and an isotope
+    measurement to scale the circles by abundance.
 
-    Arguments ABUNDANCE and ISOTOPE correspond to name of columns for
-    element abundance and isotope abundance to draw isocircles.
-
-    The isocircle (formerly known as isoclock) consists of two threads
-    that are arrow and tick.  Angle of arrow corresponds to isotope
-    ratio defined by option `--scale-iso-range-min-max'.  Angle of
-    tick corresponds to sub-integer.  Tick at 3, 6, 9, and 12 o'clock
-    corresponds to xx.25, xx.50, xx.75, and xx.00.
-
-    Note this program can take ISORG file, which is a member of CASTEML
-    family.
+    The arrow position shows the isotope value on the range set by
+    --scale-iso-range-min-max. A tick at 3, 6, 9, or 12 o'clock
+    represents a fractional part of .25, .50, .75, or .00.
 EOS
 	end
 
@@ -83,7 +77,7 @@ EOS
     ### demonstration for spot ###
     $ ls
     ref_ol_sc@32.jpg
-    matlab>> spots    % => input spots on an imagefile
+    matlab>> spots    % Mark spots on an image
     ...
     $ ls
     ref_ol_sc@32.jpg  ref_ol_sc@32.pml  ref_ol_sc@32.tex
@@ -100,7 +94,7 @@ EOS
     ref_ol_sc@32.jpg  ref_ol_sc@32.tex  ref_ol_sc@32.pml  ref_ol_sc@32.isorg
     $ vi ref_ol_sc@32.isorg    # => add columns with label `Li (ppm)' and `d7Li'
     ...
-    $ casteml spots ref_ol_sc@32.isorg Li d7Li -a 2e-6,10 -i -30,+30    # => 2 pps with 10% width circle
+    $ casteml spots ref_ol_sc@32.isorg Li d7Li -a 2e-6,10 -i -30,+30    # 2 ppm gives a circle 10% of the image width
     $ ls
     ref_ol_sc@32.jpg  ref_ol_sc@32.pml  ref_ol_sc@32.tex  ref_ol_sc@32.isorg  ref_ol_sc@32-isocirc.tex
 EOS
@@ -212,7 +206,7 @@ EOS
         ref_width = ref_relwidth # overpic is relative anyway 2014-09-12
         # diam = ref_width * Math::sqrt(acq.abundance/ref_ab)
         puts "#{fileout} writing..."
-        @output_file.puts ERB.new(template,nil,'-',"@output").result(binding)
+        @output_file.puts ERB.new(template, trim_mode: '-', eoutvar: '@output').result(binding)
   #    rescue => ex
   #      puts "#{ex.class}: #{ex.message}"
   #      exit

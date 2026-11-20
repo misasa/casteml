@@ -59,7 +59,7 @@ module Casteml
 				let(:answer){ true }
 				before do
 					allow(MedusaRestClient::Specimen).to receive(:find_by_name).with(name).and_return([])
-					allow(ui).to receive(:ask_yes_no).with(message, true).and_return(true)
+					allow(ui).to receive(:ask_yes_no).with(message, true).and_return(answer)
 					allow(MedusaRestClient::Specimen).to receive(:create).with({:name => name}).and_return(stone_2)
 				end
 
@@ -80,7 +80,7 @@ module Casteml
 					let(:answer){ false }
 					it "raise_error and not create remote object" do
 						expect(MedusaRestClient::Specimen).not_to receive(:create).with({:name => name})
-						expect{ subject }.to raise_error
+						expect{ subject }.to raise_error(RuntimeError, "<MedusaRestClient::Specimen: #{name}> does not exist.")
 					end
 				end
 			end

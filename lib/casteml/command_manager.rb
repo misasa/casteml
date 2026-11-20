@@ -59,8 +59,8 @@ class Casteml::CommandManager
 
 	def opts
 		@opts ||= OptionParser.new do |opts|
-			opts.banner = "Casteml is a suite of comprehensive utilities for CASTEML.  This is
-a basic help message containing pointers to more information.
+			opts.banner = "Casteml converts, combines, and transfers CASTEML datasets.
+Use the command help for options and examples.
 
 "
 			opts.define_head "Usage:
@@ -68,7 +68,7 @@ a basic help message containing pointers to more information.
     casteml [options...]
     casteml command [arguments...] [options...]"
 			opts.separator ""
-			opts.separator "Command:"
+			opts.separator "Commands:"
             opts.separator "    #{BUILTIN_COMMANDS.join('
     ')}"
 			opts.separator ""
@@ -78,13 +78,13 @@ a basic help message containing pointers to more information.
 			# opts.separator "    casteml command --help"
 			opts.separator ""
 			opts.separator "Description:"
-			opts.separator "    casteml download - Download pmlfile from Medusa"
-			opts.separator "    casteml join - Join several pmlfiles to a single pmlfile"
-			opts.separator "    casteml split - Split one multi-pmlfile into multiple pmlfiles"
-			opts.separator "    casteml upload - Upload a pmlfile to Medusa"
-			opts.separator "    casteml convert - Convert (pml csv tsv isorg) to (pml csv tsv isorg dflame tex pdf)"
-			opts.separator "    casteml spots - Export spots info in pmlfile to texfile"
-			opts.separator "    casteml plot - Create diagram for certein category from pmlfile using R"
+			opts.separator "    casteml download - Download datasets from Medusa"
+			opts.separator "    casteml join - Combine PML files into one"
+			opts.separator "    casteml split - Split a PML file into individual acquisitions"
+			opts.separator "    casteml upload - Upload a dataset to Medusa"
+			opts.separator "    casteml convert - Convert CASTEML datasets between formats"
+			opts.separator "    casteml spots - Export spot overlays to a LaTeX file"
+			opts.separator "    casteml plot - Plot CASTEML datasets using R"
 			opts.separator ""
 			opts.separator "See also:"
 			opts.separator "    http://dream.misasa.okayama-u.ac.jp"
@@ -96,11 +96,11 @@ a basic help message containing pointers to more information.
 			opts.separator "    casteml split session-all.pml"
 			opts.separator "    casteml spots --help"
 			opts.separator "    casteml spots liso_pig_nwa2376.isorg Li d7Li -a 1.0,4.0 -i -16,8"
-			opts.separator "    casteml casteml convert -f tex my_rat_ree.pml >  my_rat_ree.tex"
+			opts.separator "    casteml convert -f tex my_rat_ree.pml > my_rat_ree.tex"
 			opts.separator ""
-			opts.separator "Option:"
+			opts.separator "Options:"
 
-			opts.on_tail("-?", "--help", "Show this message") do |v|
+			opts.on_tail("-?", "--help", "Show the main help message") do |v|
 				@options[:help] = v
 			end
 
@@ -112,11 +112,11 @@ a basic help message containing pointers to more information.
 			#	@options[:debug] = v
 			#end
 
-			opts.on_tail("-V", "--version", "Show version") do |v|
+			opts.on_tail("-V", "--version", "Show the version and cache paths") do |v|
 				@options[:version] = v
 			end
 
-			opts.on_tail("-R", "--refresh", "Refresh cache files") do |v|
+			opts.on_tail("-R", "--refresh", "Refresh local measurement metadata and units from Medusa") do |v|
 				@options[:refresh] = v
 			end
 
@@ -159,8 +159,7 @@ configuration:
    #{Casteml::MeasurementItem.dump_path}
    #{Casteml::MeasurementCategory.dump_path}
 
-To update configuration, revise at Medusa and issue `casteml --refresh' locally.
-When still conversion does not work as expected, re-install gem `alchemist'.
+After updating the measurement metadata in Medusa, run `casteml --refresh' to update the local cache.
 EOF
 	end
 

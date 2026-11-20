@@ -25,7 +25,15 @@ module Casteml::Commands
 			}
 		end
 
-		describe "#invoke_with_build_args" do
+		describe "#read_template" do
+		it "reads the packaged template" do
+			cmd = cmd_class.new
+			path = cmd.default_template(nil)
+			expect(cmd.read_template(path)).to eq(File.read(path))
+		end
+	end
+
+	describe "#invoke_with_build_args" do
 			let(:cmd){ cmd_class.new }
 			let(:build_args){ [] }
 			context "without args" do
@@ -79,7 +87,7 @@ module Casteml::Commands
 				it "generate plotfile" do
 					expect(cmd).to receive(:read_template).and_return(template)
 					expect(erb).to receive(:result).and_return(output)
-					expect(ERB).to receive(:new).with(template, nil, "-", "@output").and_return(erb)
+					expect(ERB).to receive(:new).with(template, trim_mode: "-", eoutvar: "@output").and_return(erb)
 					expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + ".R"), output)
 #					expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + "_trace.R"), Regexp.new("input = \\\"#{File.basename(path, '.*') + '_trace.dataframe'}\\\"\noutput = \\\"#{File.basename(path, '.*') + '_trace.pdf'}\\\"\n"))
 					subject
@@ -105,13 +113,13 @@ module Casteml::Commands
 				end
 
 
-				context "isotope-dev" do
-					it "select template for category" do
-						expect(cmd).to receive(:default_template).with(category).and_return(File.join(Casteml::TEMPLATE_DIR, "plot/#{category}.R.erb"))
-						expect(Casteml).not_to receive(:exec_command)
-						expect{ subject }.to raise_error
-					end
+				context "when the selected template is missing" do
+					let(:args){ [path, '-c', category, '--template-file', 'tmp/missing.R.erb'] }
 
+					it "fails before invoking R" do
+						expect(Casteml).not_to receive(:exec_command)
+						expect{ subject }.to exit_with_code(1)
+					end
 				end
 
 				context "oxygen" do
@@ -132,7 +140,7 @@ module Casteml::Commands
 					it "generate plotfile" do
 						expect(cmd).to receive(:read_template).and_return(template)
 						expect(erb).to receive(:result).and_return(output)
-						expect(ERB).to receive(:new).with(template, nil, "-", "@output").and_return(erb)
+						expect(ERB).to receive(:new).with(template, trim_mode: "-", eoutvar: "@output").and_return(erb)
 #						expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + "_#{category}.R"), Regexp.new("input = \\\"#{File.basename(path, '.*') + "_#{category}.dataframe"}\\\"\r\noutput = \\\"#{File.basename(path, '.*') + "_#{category}.pdf"}\\\"\r\n"))
 						expect(cmd).to receive(:output_plotfile).with(File.join(File.dirname(path), File.basename(path, '.*') + "_#{category}.R"), output)
 						subject
@@ -140,7 +148,7 @@ module Casteml::Commands
 
 					it "generate plotfile include input and output path" do
 						subject
-						expect(File.exists?(plotfile)).to be_truthy
+						expect(File.exist?(plotfile)).to be_truthy
 						plot = File.open(plotfile).read
 						#expect(plot).to match(Regexp.new("input = \"#{File.basename(path, '.*') + "_#{category}.dataframe"}\""))
 						#expect(plot).to match(Regexp.new("output = \\\"#{File.basename(path, '.*') + "_#{category}.pdf"}\\\""))						

@@ -10,12 +10,12 @@ class Casteml::Commands::PlotCommand < Casteml::Command
 	end
 	def arguments
 	<<-EOS
-    PMLFILE    A member of CASTEML file that can be either pmlfile, csvfile, or isorgfile
+    PMLFILE    Input CASTEML dataset (.pml, .csv, .tsv, .org, or .isorg)
 EOS
 	end
 
 	def initialize
-		super 'plot', '    Create diagram for certein category from pmlfile using R' # Summary:
+		super 'plot', '    Plot a CASTEML dataset using R' # Summary:
 
 	    @params = {
 #	    	:category => 'trace',
@@ -25,12 +25,12 @@ EOS
 		#MeasurementCategory.find_all
 		category_names = Casteml::MeasurementCategory.record_pool.map{|category| "'" + category.name + "'"}
 		add_option('-c', '--category CATEGORY',
-						"Select template CATEGORY.R.erb and extract datasets defined in CATEGORY (#{category_names.join(', ')})") do |v, options|
+						"Select CATEGORY.R.erb and filter measurements by category (#{category_names.join(', ')})") do |v, options|
 			options[:category] = v
 		end
 
         # add_option("-t", "--template-file TEMPLATE_PATH", "Specify template file path (default: #{default_template(@params[:category])})") do |v|
-        add_option("-t", "--template-file template.R.erb", "Specify template R-script for local development") do |v|
+        add_option("-t", "--template-file template.R.erb", "Use a custom R script template") do |v|
           options[:template_file] = v
         end
 
@@ -41,26 +41,17 @@ EOS
 
 	def description
 	<<-EOF
-    Create diagram for certein category from pmlfile using R.  Specify
-    pmlfile as argument.  Multiple stones can be plotted at the same
-    time.  Download pmlfiles for stones, and merge them into single
-    multi-pmlfile by command `casteml join' in advance.  The pmlfile
-    can be csvfile or isorgfile.
+    Plot a CASTEML dataset using R. To plot several stones together,
+    first combine their PML files with casteml join.
 
-    This program extracts certain datasets from pmlfile, and plots
-    them using template.  With option `--category CATEGORY1', datasets
-    defined in CATEGORY1 on Medusa, are passed and template
-    `CATEGORY1.R.erb' will be chosen.  Without option, a category
-    `default' is selected.
+    Use --category to select measurements from a Medusa category
+    and load its CATEGORY.R.erb template. Without a category, the
+    command uses default.R.erb. Use --template-file to override the
+    template. The command writes its data table and R script next to
+    the input file.
 
-    To add a new `CATEGORY1', create set of elements `CATEGORY1' in
-    Medusa and place template `CATEGORY1.R.erb' in certain place.  As
-    of May 13 (2015), the R-script should be in
-    ~/orochi-devel/casteml/template/plot/.
-
-    Do not forget to include path to R.exe such for 'c:/Program
-    Files/R/R-3.2.5/bin/x64/' in %PATH%.  To modify the plot, revise
-    newly generated R-script then run vanilla R.
+    Make sure R is on your PATH. To refine the plot, edit the generated
+    R script and run it with R --vanilla --slave.
 EOF
 	end
 
@@ -117,7 +108,7 @@ EOS
     end
 
 	def read_template(path)
-		raise "Colud not find #{path}. Specify TEMPLATE_PATH" unless File.exists?(path)
+		raise "Colud not find #{path}. Specify TEMPLATE_PATH" unless File.exist?(path)
 		File.read(path)
 	end
 
@@ -147,9 +138,9 @@ EOS
         regexp = nil
         regexp = params[:regexp] if params[:regexp]
         acq = "5f"
-        output_plotfile(plotfile_path, ERB.new(template,nil,'-',"@output").result(binding))
+        output_plotfile(plotfile_path, ERB.new(template, trim_mode: '-', eoutvar: '@output').result(binding))
 	    # File.open(plotfile_path,"w") do |plot|
-     #    	plot.puts ERB.new(template,nil,'-',"@output").result(binding)
+     #    	plot.puts ERB.new(template, trim_mode: '-', eoutvar: '@output').result(binding)
      #    end
         Dir.chdir(dir){
         	Casteml.exec_command("R --vanilla --slave < #{File.basename(plotfile_path)}")

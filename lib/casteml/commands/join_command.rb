@@ -7,24 +7,23 @@ class Casteml::Commands::JoinCommand < Casteml::Command
 
 	def arguments
 	<<-EOS
-    FILE0, FILE1    pmlfiles to be joined (ex. session1.pml ... sessionN.pml)
+    FILE0, FILE1    PML files to combine (for example, session1.pml and session2.pml)
 EOS
 	end
 
 	def initialize
-		super 'join', '    Join several pmlfiles to a single pmlfile' # Summary:
+		super 'join', '    Combine PML files into one' # Summary:
 
 		add_option('-o', '--outfile OUTPUTFILE',
-						'Specify output filename') do |v, options|
+						'Write to this file instead of standard output') do |v, options|
 			options[:outfile] = v
 		end
 	end
 
 	def description
     <<-EOF
-    Join several pmlfiles to a single pmlfile.  Certain command such
-    for `casteml plot' can only accept a single pmlfile (including
-    many datesets).  Use this program to merge the pmlfiles.
+    Combine the acquisitions from one or more PML files. The result
+    goes to standard output unless you specify --outfile.
 EOF
 	end
 

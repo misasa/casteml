@@ -706,7 +706,7 @@ module Casteml
 			subject
 		}
 		it {
-			expect(File.exists?(subject)).to be_truthy
+			expect(File.exist?(subject)).to be_truthy
 		}
 		it {
 			expect(File.read(subject)).to be_eql(pml)
